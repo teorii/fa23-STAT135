@@ -1,0 +1,8 @@
+---
+title: "HW8"
+output: html_notebook
+---
+
+# Problem  8A
+```{r}
+```

@@ -1,0 +1,9 @@
+---
+title: "HW11"
+output: html_notebook
+---
+
+# Problem  11A
+a) 
+$y1=w1+e1=3\\ y2= w2+e2=3 \\ y3=w1−w2+e3=1 \\ y4=w1+w2+e4=7$
+

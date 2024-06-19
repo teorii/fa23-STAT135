@@ -1,0 +1,43 @@
+---
+title: "HW5"
+output: html_notebook
+---
+
+# Problem 6A
+Suppose that $X ∼ bin(100, p)$. Consider the test that rejects $H_0: p = .5$ in favor
+of $H_A: p 	= .5$ for $|X −50| > 10.5$. Use the normal approximation to the binomial
+distribution to answer the following
+
+## a. What is $\alpha$
+
+$\mu = np = 50, \sigma^2 = npq = 25$, We can simplify Var due to it being a Binomial dist.
+
+$\alpha = P(|X − 50| > 10.5) = P(\frac{|X − 50|}{5} > 2.25)
+```{r}
+pnorm(-2.25) * 2
+```
+
+b. Graph the power as a function of p.
+$1 - \beta = P(|X − 50| > 10.5) = 1 - P(39.5 \leq X \leq 60.5)$
+
+```{r}
+x <- seq(0, 1, by=0.01)
+curve(1 - (pnorm(60, mean=100*x, sd=sqrt(100 * x * (1 - x))) - pnorm(40, mean=100*x, sd=sqrt(100*x*(1-x)))), xlab='p', ylab='power')
+```
+
+# Problem 6B
+
+```{r}
+set.seed(1)
+x <- rnorm(25, mean=0, sd=10)
+x_se <- 10/sqrt(25)
+x
+```
+```{r}
+set.seed(1)
+x <- rnorm(100, mean=0, sd=10)
+x_se <- 10/sqrt(100)
+x
+```
+
+

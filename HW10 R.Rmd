@@ -1,0 +1,255 @@
+---
+title: "HW10"
+output: html_notebook
+---
+
+# Problem  10A
+The dataset chicks was obtained from BLSS: The Berkeley Interactive Statistical System by Abrahams and Rizzardi. Each observation corresponds to an egg (and the resulting chick) of a bird called the Snowy Plover. The data were taken at Point Reyes Bird Observatory. Column 1 contains the egg length in millimeters, Column 2 the egg breadth in millimeters, Column 3 the egg weight in grams, and Column 4 the chick weight in grams. The object is to estimate the size of the chick based on dimensions of the egg.
+
+## a)
+```{r}
+library(dplyr)
+library(ggplot2)
+
+chicks <- read.table("hw10/chicks.txt", header=TRUE)
+chicks
+cw <- chicks$cw
+el <- chicks$el
+ew <- chicks$ew
+eb <- chicks$eb
+
+chicks %>% ggplot(aes(x=el,y=cw)) +
+  geom_point(color='blue')
+```
+Plot looks linear and homoscedastic. The model $cw_i=\beta_0+\beta_1el_i+\epsilon_i$ should be good.
+```{r}
+cw_mean <- mean(cw)
+cw_mean
+sd(cw)
+
+el_mean <- mean(el)
+el_mean
+sd(el)
+
+cor(cw,el)
+
+slope <- cov(cw,el)/var(el)
+slope
+intercept <- cw_mean - slope*el_mean
+intercept
+```
+Therefore, the regression line is $\hat{y}=0.252x-1.77$
+```{r}
+chicks %>% ggplot(aes(x=el,y=cw)) +
+  geom_point(color='blue')+
+  geom_abline(slope=0.252,intercept=-1.77)
+```
+
+## b)
+```{r}
+summary(lm(cw~el))
+
+chicks %>% ggplot(aes(x=el,y=cw)) +
+  geom_point(color='blue')+
+  geom_smooth(method=lm, se=FALSE,color='black')
+```
+R estimates the slope and the intercept at the same values that we computed in part a). Given a p-value of 0.191 for the intercept, we fail to reject the null hypothesis in this case. However, given the p-value for the slope of 4.727e-07, we reject the null hypothesis.
+
+## c)
+```{r}
+cor(chicks)
+```
+The variable with the highest correlation to chick weight (cw) is egg weight (ew), 0.8472275.
+```{r}
+chicks %>% ggplot(aes(x=ew,y=cw)) +
+  geom_point(color='blue')+
+  geom_smooth(method=lm, se=FALSE,color='black')
+
+ggplot(lm(cw~ew))+
+  geom_point(aes(x=.fitted,y=.resid))
+```
+Linear plot but there is no heteroscedastcity.
+
+## d)
+```{r}
+summary(lm(cw~ew))
+
+coef <- coefficients(summary(lm(cw~ew)))
+coef
+
+# Therefore, the confidence interval is:
+n <- length(cw)
+se <- .2207+sqrt(1/n+(8.5-mean(ew))^2/((n-1)*var(ew)))
+predict_weight <- coef[1]+8.5*coef[2]
+
+CI <- c(predict_weight-qt(0.975,df=42)*se,predict_weight+qt(0.975,df=42)*se)
+CI
+```
+
+## e)
+```{r}
+# new se
+se <- .2207*sqrt(1+ 1/n + (8.5-mean(ew))^2/((n-1)*var(ew)))
+PI <- c(predict_weight-qt(0.975,df=42)*se,predict_weight+qt(0.975,df=42)*se)
+PI
+```
+
+## f)
+12 grams is too heavy, not seen as a part of our dataset, would not be a good model/it is unknown. (hint: bware of extrapolation)
+
+
+# Problem 10B
+The object is still to find a good way to predict the weight of a chick given measurements on the egg, using linear regression as the only tool. The difference between this problem and Problem 10A is that now you are going to use a combination of variables to estimate the weights of the chicks.
+
+## a)
+```{r}
+summary(lm(cw~eb+el))
+```
+The regressions seem to be fairly similar in most aspects, noticeably the $R^2$ of 0.7112.
+
+## b)
+```{r}
+summary(lm(ew~eb+el))
+```
+$R^2$ has gone up to 0.9506, which essentially means that ew is a  linear function of egg length and breadth. This also explains why the regressions are similar from before since ew is roughly the same as eb+el.
+
+## c)
+```{r}
+summary(lm(cw~eb+el+ew))
+```
+This regression shows odd results. Even though the $R^2$ slightly went up, the test itself does not make sense. Even though every coef has p-values that suggest that we fail to reject the slope in the null hypothesis, the F-stat shows us that we should reject it. This just means that the variables that we are using to predict are too correlated with one another. 
+
+## d)
+Just use the two that we did in a) to prevent what happpened here in part c).  Prevents minimal correlation and is easier to understand.
+
+# Problem 10C
+This problem concerns the dataset tox. The data are observations on a simple random sample of Hodgkins disease patients at Stanford Hospital, taken as part of a study of the toxicity of the treatment to the patients lungs.
+```{r}
+tox <- read.table("hw10/tox.txt", header=TRUE)
+tox
+```
+## a)
+Parametric t-test value of -6.15, 21 df. Non-parametric test of the f-stat of 246.
+Because of these numbers, it shows that the means are different and that the distributions are different from one another. Furthermore, since the t-test value in the first parametric test is negative, this means that at month15 the scores are lower than the base scores.
+
+## b)
+```{r}
+cor(tox)
+summary(lm(tox$month15~tox$base+tox$chemo))
+```
+Given the correlation matrix, I decided to use base and chemo to estimate month15. Given this, the $R^2$ is 0.4846 and the adjusted is 0.4304. Given this, the prediction model would most likely be usable.
+
+# Problem 10D
+The dataset baby contains observations on mothers and their newborns at Kaiser Hospital (data courtesy of D. Nolan).
+```{r}
+baby <- read.table("hw10/baby.txt", header=TRUE)
+baby
+```
+
+## a)
+```{r}
+baby %>% ggplot(aes(x=bw,y=..density..))+
+  geom_histogram(bins=10)
+
+qqnorm(baby$bw)
+```
+Plot(s) looks normal.
+
+## b)
+```{r}
+baby %>% ggplot(aes(x=mpw,y=..density..))+
+  geom_histogram(bins=10)
+
+qqnorm(baby$mpw)
+```
+The plot is skewed right. The qqplot has an almost convex shape to it. If the histo plot was skewed left, it would have more of a concave shape to it.
+
+## c)
+```{r}
+cor(baby)
+```
+Given the correlation matrix, I would use gd, mh, and sm as my prediction variables.
+
+```{r}
+summary(lm(baby$bw~baby$gd+baby$mh+baby$sm))
+```
+
+## d)
+Even though the other variables have a coef of 0.43 and 1.31 respectively, the smoking indicator variable is -8.52. Because of this, we can conclude that if a mother smoked, their baby would be on average -8.52 oz lighter than if the mother didn't smoke (assuming all else equal).
+
+# Problem 10E
+The dataset women contains the average weight in pounds (Column 2) for American women whose heights, correct to the nearest inch, are given in Column 1.
+
+```{r}
+women <- read.table("hw10/women.txt", header=TRUE)
+women
+```
+
+## a)
+```{r}
+summary(lm(women$h~women$avew))
+```
+In this case, the value of $R^2$ is 0.991, essentially being linear. Because of this, this indicates that height and weight are essentially identical to one another in terms of regression.
+
+## b)
+The correlation would be less. Each dataset represents many women, if the point is replaced by all the data of the women of those heights it would decrease the accuarcy of the data/make the data harder to read and reduce the correlation.
+
+## c)
+Residual plot of linear regression suggests that the df that should be used is 2.
+
+# Problem 10F
+```{r}
+bodytemp <- read.csv("hw10/bodytemp.csv")
+bodytemp
+```
+## a)
+
+```{r}
+male_bt <- bodytemp[bodytemp$gender==1,]
+male_bt %>% ggplot(aes(x=temperature,y=rate)) +
+  geom_point(color='blue')
+
+female_bt <- bodytemp[bodytemp$gender==2,]
+female_bt %>% ggplot(aes(x=temperature,y=rate)) +
+  geom_point(color='red')
+```
+Overall the plots are similar in shape, no clear relationship at all just plots of data.
+
+## b)
+Comparing the two plots, it shows that the heartrate of men have less variance than the heartrate of women.
+
+## c)
+```{r}
+summary(lm(male_bt$temperature~male_bt$rate))
+
+male_bt %>% ggplot(aes(x=temperature,y=rate)) +
+  geom_point(color='blue')+
+  geom_smooth(method=lm, se=FALSE,color='black')
+```
+$R^2 is 0.038. The regression just shows the same stuff that we saw in part a).
+
+## d)
+```{r}
+summary(lm(female_bt$temperature~female_bt$rate))
+
+female_bt %>% ggplot(aes(x=temperature,y=rate)) +
+  geom_point(color='red')+
+  geom_smooth(method=lm, se=FALSE,color='black')
+```
+While the $R^2$ is higher at around 0.082. It essentially shows the same as a).
+
+## e)
+Slope for men is about 1.645 with an SE of 1.039. The slope for women was estimated 3.128 with an SE of 1.316. Calculate the difference, 1.483 with an SE of 1.68.
+```{r}
+CI = c((1.483 - 2*1.68),(1.483 + 2*1.68))
+CI
+```
+Since the CI contains 0, we can conclude that the slopes are equal.
+
+## f)
+Given a difference in intercept of 145.657 and an SE of 164.767:
+```{r}
+CI = c((145.657 - 2*164.767),(145.657 + 2*164.767))
+CI
+```
+Since the CI contains 0, we can conclude that the intercepts are equal.

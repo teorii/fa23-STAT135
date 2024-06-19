@@ -1,0 +1,119 @@
+---
+title: "HW5"
+output: html_notebook
+---
+
+# Problem 5A
+Suppose that $X_1, X_2, ..., X_{25}$ are i.i.d $N(\mu,\sigma^2)$ where $\mu = 0$ and $\sigma = 10$. Plot the sampling distributions of $\bar{X}$ and $\hat{\sigma^2}$.
+
+Since the normal random variables will be normal, $\bar{X}$
+
+$\mathbb{E}[\bar{X}] = \mathbb{E}[\frac{1}{25}\sum_{i=1}^{25}(X_i)]=[\frac{1}{25}\sum_{i=1}^{25}\mathbb{E}[X_i]=0$
+
+$Var(\bar{X}) = Var(\frac{1}{25}\sum_{i=1}^{25}X_i)=[\frac{1}{25^2}\sum_{i=1}^{25}Var(X_i)]=\frac{10^2}{25^2}=0.16$
+
+Therefore, since $\bar{X} \sim N(0, 0.4)$, the plot is given by:
+
+```{r}
+library(ggplot2)
+p1 <- ggplot(data.frame(x = c(-1.5,1.5)),aes(x))+
+  stat_function(fun=dnorm, n=25, args=list(mean=0, sd=0.4))
+p1
+```
+$\hat{\sigma}^2$
+
+$\hat{\sigma}^2 = \frac{1}{n}\sum_{i=1}^{n}(X_i-\bar{X})^2=\frac{n-1}{n}\frac{1}{n-1}\sum_{i=1}^{n}(X_i-\bar{X})^2=\frac{n-1}{n}s^2$
+
+$\Downarrow$
+
+$s^2 = \frac{n}{n-1}\hat{\sigma}^2$
+
+$\frac{(n-1)s^2}{\sigma^2} \sim \chi_{n-1}^2 \Rightarrow \frac{n \hat{\sigma}^2}{\sigma^2} \sim \chi_{n-1}^2$
+
+Therefore, since $\hat{\sigma}^2 \sim  \chi_{n-1}^2$, the plot is given by:
+
+```{r}
+library(ggplot2)
+p2 <- ggplot(data.frame(x = c(10,50)),aes(x))+
+  stat_function(fun=dchisq, n=25, args=list(df=24))
+p2
+```
+
+# Problem 5G
+
+```{r}
+scoreraw <- read.delim("/Users/sethc/Documents/Berkeley Fall2023/STAT 135/data.scores.txt",sep='',header=TRUE) 
+score <- scoreraw[scoreraw$f >0& scoreraw$m >0,] 
+score$m = score$m *2 
+score <- score[, c("m","f")]
+
+#mid
+ggplot(score, aes(x=m))+ geom_histogram(aes(y=..density..), binwidth=2, colour="white", fill ="green")+ 
+  ggtitle("Frequency of Midterm Scores")+ 
+  theme(plot.title=element_text(size=12, hjust=0.5))+ 
+  xlab("scores")+ 
+  ylab("frq")+ 
+  xlim(c(0,45))
+#fin
+ggplot(score, aes(x=f))+ geom_histogram(aes(y=..density..), binwidth=2, colour="white", fill ="blue")+ 
+  ggtitle("Frequency of Final Scores")+ 
+  theme(plot.title=element_text(size=12, hjust=0.5))+ 
+  xlab("scores")+ 
+  ylab("frq")+ 
+  xlim(c(0,45))
+
+#box
+# for some reason tidyR is not loading on the computer im working on now but was working on my laptop
+library(tidyr)
+score_box <- gather(score,key ="exam",value ="scores", m, f) 
+ggplot(score_long)+ 
+  geom_boxplot(aes(x=exam,y=scores))+
+  ggtitle("Midterm Scores vs Final Scores Distribution")+ 
+  theme(plot.title=element_text(size=12, hjust =0.5))
+```
+
+Observations from box plots:
+The midterm represents a roughly normal distribution while the final scores are signficantly right-skewed. Because of this we are using the median instead of the mean to describe the data. The median of the midterm is around ~25 but the final median is around 30, which is also seen on the histogram. The spread (percentiles) of the midterm are larger than the ones on the final.
+
+# Problem 5H
+
+```{r}
+set.seed(1)
+
+# a)
+nsample <- rnorm(500,mean=10,sd=3)
+qqnorm(nsample)
+
+# b)
+qqnorm(score$f)
+```
+This just further proves our observations from before. In the normal sample that we made we can see a linear trend along the graph, but if we take a qqnorm of the scores from the final we can see that the curve is more curved, especially around the middle. This is most likely due to the right-skewed nature of the graph that we saw.
+
+# Problem 5I
+
+```{r}
+stem(score$f)
+stem(score$f, scale=0.5)
+stem(score$f, scale=2)
+```
+It seems that the default stem and leaf plot seems to be the easiest to visually use, however I think that the last stem and leaf plot can also be used if exact grading distribution would like to be seen. Overall, I think the first one and the last one are significantly better than the middle one because it does not allow you to see the distribution of the scores for the exam and is too complicated visually while looking at it.
+
+
+# Problem 5J
+```{r}
+ggplot(score, aes(x=m,y=f))+ 
+  geom_point()+ 
+  ggtitle("exam scores")+
+  xlab("midterm scores")+ 
+  ylab("final scores")+
+  geom_abline() 
+
+c <- sum(score$m<score$f)
+c
+# [1] 137
+```
+
+The amount of people that did better due to the grading curve was 137 students.
+
+A line that is more in line with the actual distribution of the grades would fit better. Estimation using m=1 for the slope of the line is not a good fit because the line is left with over 50% of the data lying above the line, a smaller slope or moving the line above the 0 intercept would be a better choice.
+

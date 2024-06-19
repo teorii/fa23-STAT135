@@ -1,0 +1,8 @@
+---
+title: "HW10"
+output: html_notebook
+---
+
+# Problem  10A
+The dataset chicks was obtained from BLSS: The Berkeley Interactive Statitstical System by Abrahams and Rizzardi. Each observation corresponds to an egg (and the resulting chick) of a bird called the Snowy Plover. The data were taken at Point Reyes Bird Observatory. Column 1 contains the egg length in millimeters, Column 2 the egg breadth in millimeters, Column 3 the egg weight in grams, and Column 4 the chick weight in grams. The object is to estimate the size of the chick based on dimensions of the egg.
+a)
